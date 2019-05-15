@@ -1,11 +1,10 @@
-import fs from 'fs';
 import Octokit from '@octokit/rest'
-import prompt from 'prompt'
-
 const fetchData = (req, res) => {
     const url = req.query.url || [];
     console.log("url", url);
     var org= null, repo = null;
+
+    //get org and repo names from git url
     if(url) {
         if(url.indexOf("http") == 0) {
             const urlArr = url.split('/');
@@ -18,18 +17,23 @@ const fetchData = (req, res) => {
         }
     }
 
+    //Creating Octait Object
     const octokit = new Octokit({
         userAgent: 'myApp v1.2.3',
         baseUrl: 'https://api.github.com',
-       })
-       var list = octokit.request(`GET /repos/${org}/${repo}/issues`).then(result => {
+    })
+
+    //getting all issues with org and repo name
+    octokit.request(`GET /repos/${org}/${repo}/issues`).then(result => {
         var totalIssues = 0;
         var noOfIssueIn24Hrs = 0;
         var noOfIssueIn7Days = 0;
         var time24HrsBack = new Date(new Date().getTime() - 60 * 60 * 24 * 1000);
         var time7DaysBack = new Date(new Date().getTime() - 7 * 60 * 60 * 24 * 1000);
 
+        //Iterating the issues list and updating the issues by age bucket
         result.data.forEach(issue => {
+            //Check if it is a issue not a pull request
             if(!issue.pull_request) {
                 totalIssues = totalIssues + 1;
                 const issueDate = new Date(issue.created_at);
@@ -41,15 +45,17 @@ const fetchData = (req, res) => {
             }
         });
 
+        //sending response to frontend
         res.send({
             totalIssues,
             noOfIssueIn24Hrs,
             noOfIssueIn7Days,
             noOfIssueAfter7Days: totalIssues - (noOfIssueIn24Hrs + noOfIssueIn7Days)
         })
-      }).catch((e) => {
+    }).catch((e) => {
         console.log("Error fetching issue from github api, ", e);
-        res.status(400).json({message: 'Error fetching issue from github api'});      });
+        res.status(400).json({message: 'Error fetching issue from github api'});
+    });
 }
 
 export const service = {
