@@ -3,7 +3,8 @@ import './app.css';
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import SimpleTable from './SimpleTable';
-import {TextField, Paper, Button} from '@material-ui/core'
+import {TextField, Paper, Button, LinearProgress} from '@material-ui/core'
+
 
 class App extends Component {
 
@@ -20,14 +21,14 @@ class App extends Component {
   
 
   handleSubmit() {
-      this.setState({error: "", issues: {}});
+      this.setState({error: "", issues: {}, loading: true});
       fetch(`/fetch-data?url=${this.state.url}`).then((res) => {
         return res.json();
       }).then((res) => {
         if(res.message) {
-          this.setState({error: res.message});
+          this.setState({error: res.message, loading: false});
         } else {
-          this.setState({issues: res});
+          this.setState({issues: res, loading: false});
         }
       });
   }
@@ -52,7 +53,7 @@ class App extends Component {
             Search Issues
           </Button>
           {this.state.error ? <div style={{color: 'red', marginLeft: "170px"}}>{this.state.error}</div> :
-            <SimpleTable issues={this.state.issues}/>
+            <div>{this.state.loading ? <LinearProgress />: <SimpleTable issues={this.state.issues}/>}</div>
           }
         </Paper>
       </div>

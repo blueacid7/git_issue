@@ -2,6 +2,17 @@ import path from 'path'
 import express from 'express'
 import {service} from './service'
 import multer from 'multer'
+import Octokit from '@octokit/rest'
+
+
+const octokit = new Octokit({
+    userAgent: 'myApp v1.2.4.5',
+    baseUrl: 'https://api.github.com',
+    auth: {
+        username: process.env.git_user_name,
+        password: process.env.git_password
+    }
+})
 
 const upload = multer({dest: 'uploads'});
 
@@ -19,7 +30,7 @@ app.get('/', (req, res) => {
 
 //Get Api to fetch all the issues bucket wise
 app.get('/fetch-data', (req, res) => {
-    service.fetchData(req, res);
+    service.fetchData(req, res, octokit);
 })
 
 //Startign the server
